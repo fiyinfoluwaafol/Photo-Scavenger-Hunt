@@ -13,6 +13,13 @@ class TaskCell: UITableViewCell {
     @IBOutlet weak var completedImageView: UIImageView!
     
     
+    func configure(with task: Task) {
+        titleLabel.text = task.title
+        titleLabel.textColor = task.isComplete ? .secondaryLabel : .label
+        completedImageView.image = UIImage(systemName: task.isComplete ? "checkmark.circle" : "circle")?.withRenderingMode(.alwaysTemplate)
+        completedImageView.tintColor = task.isComplete ? .systemBlue : .tertiaryLabel
+    }
+    
     override func awakeFromNib() {
         super.awakeFromNib()
         // Initialization code
