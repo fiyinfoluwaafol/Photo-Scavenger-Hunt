@@ -4,14 +4,14 @@ Submitted by: **Fiyinfoluwa Afolayan**
 
 **PhotoScavengerHunt** is an app that allows users to complete scavenger hunt tasks by attaching photos to them. Users can view a list of tasks, mark them as complete by adding a photo, and track where each photo was taken using location data displayed on a map.
 
-Time spent: **X** hours spent in total
+Time spent: **4** hours spent in total
 
 ## Required Features
 
 The following **required** functionality is completed:
 
-- [ ] App displays list of hard-coded tasks
-- [ ] When a task is tapped it navigates the user to a task detail view
+- [x] App displays list of hard-coded tasks
+- [x] When a task is tapped it navigates the user to a task detail view
 - [ ] When user adds photo to complete the tasks, it marks the task as complete
 - [ ] When adding photo of task, the location is added
 - [ ] User returns to home page (list of tasks) and the status of your task is updated to complete

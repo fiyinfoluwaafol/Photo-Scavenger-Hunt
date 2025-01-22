@@ -23,7 +23,7 @@ class TaskDetailViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        updateUI()
         // Do any additional setup after loading the view.
     }
     
@@ -51,7 +51,6 @@ class TaskDetailViewController: UIViewController {
         completedImageView.tintColor = color
         titleLabel.textColor = color
 
-        mapView.isHidden = !task.isComplete
         attachPhotoButton.isHidden = task.isComplete
     }
 
