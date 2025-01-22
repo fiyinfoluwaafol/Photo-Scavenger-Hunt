@@ -12,9 +12,9 @@ The following **required** functionality is completed:
 
 - [x] App displays list of hard-coded tasks
 - [x] When a task is tapped it navigates the user to a task detail view
-- [ ] When user adds photo to complete the tasks, it marks the task as complete
+- [x] When user adds photo to complete the tasks, it marks the task as complete
 - [ ] When adding photo of task, the location is added
-- [ ] User returns to home page (list of tasks) and the status of your task is updated to complete
+- [x] User returns to home page (list of tasks) and the status of your task is updated to complete
  
 The following **optional** features are implemented:
 

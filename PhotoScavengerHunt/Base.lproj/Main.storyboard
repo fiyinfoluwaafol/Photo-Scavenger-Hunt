@@ -29,7 +29,7 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <stackView opaque="NO" contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="LWN-Bx-jgD">
-                                                    <rect key="frame" x="16" y="7.9999999999999982" width="203.33333333333334" height="20.333333333333329"/>
+                                                    <rect key="frame" x="16" y="8" width="203.33333333333334" height="20.333333333333336"/>
                                                     <subviews>
                                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Your favorite hiking spot" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="GEC-OB-su3">
                                                             <rect key="frame" x="0.0" y="0.0" width="183.66666666666666" height="20.333333333333332"/>
@@ -109,6 +109,9 @@
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="filled" title="Attach Button"/>
+                                <connections>
+                                    <action selector="didTapAttachPhotoButton:" destination="K9Y-34-OBQ" eventType="touchUpInside" id="kYq-A7-A1E"/>
+                                </connections>
                             </button>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="fZQ-gn-dhY"/>
