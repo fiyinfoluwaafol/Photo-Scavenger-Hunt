@@ -8,8 +8,9 @@
 import UIKit
 import MapKit
 import PhotosUI
+import CoreLocation
 
-class TaskDetailViewController: UIViewController {
+class TaskDetailViewController: UIViewController, CLLocationManagerDelegate {
     @IBOutlet weak var titleLabel: UILabel!
     
     @IBOutlet weak var descriptionLabel: UILabel!
@@ -21,13 +22,52 @@ class TaskDetailViewController: UIViewController {
     @IBOutlet weak var completedImageView: UIImageView!
     
     var task: Task!
+    let locationManager = CLLocationManager()
+    var currentLocation: CLLocation?
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // Check location authorization status
+            switch locationManager.authorizationStatus {
+            case .notDetermined:
+                locationManager.requestWhenInUseAuthorization()
+            case .denied, .restricted:
+                print("⚠️ Location access denied or restricted.")
+            case .authorizedAlways, .authorizedWhenInUse:
+                locationManager.startUpdatingLocation()
+            default:
+                break
+            }
+        
+        mapView.register(TaskAnnotationView.self, forAnnotationViewWithReuseIdentifier: TaskAnnotationView.identifier)
+        
+        mapView.delegate = self
+        mapView.layer.cornerRadius = 12
+        
+        locationManager.delegate = self
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.startUpdatingLocation()
+        
         updateUI()
+        updateMapView()
         // Do any additional setup after loading the view.
     }
     
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let location = locations.last else {
+            print("⚠️ Location update received, but no valid location found.")
+            return
+        }
+
+        currentLocation = location
+        print("📍 Updated current location: \(location.coordinate.latitude), \(location.coordinate.longitude)")
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+            print("Failed to get location: \(error.localizedDescription)")
+        }
 
     /*
     // MARK: - Navigation
@@ -56,6 +96,42 @@ class TaskDetailViewController: UIViewController {
     }
     
     @IBAction func didTapAttachPhotoButton(_ sender: Any) {
+        let actionSheet = UIAlertController(title: "Add Photo", message: "Choose a source for your photo", preferredStyle: .actionSheet)
+
+            // Camera option
+            actionSheet.addAction(UIAlertAction(title: "Take Photo", style: .default) { [weak self] _ in
+                self?.openCamera()
+            })
+
+            // Photo library option
+            actionSheet.addAction(UIAlertAction(title: "Photo Library", style: .default) { [weak self] _ in
+                self?.openPhotoLibrary()
+            })
+
+            // Cancel option
+            actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+
+            // Present the action sheet
+            present(actionSheet, animated: true)
+    }
+    
+    private func openCamera() {
+        guard UIImagePickerController.isSourceTypeAvailable(.camera) else {
+            // Show an alert if the camera is not available
+            let alert = UIAlertController(title: "Error", message: "Camera is not available on this device", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+            return
+        }
+
+        let picker = UIImagePickerController()
+        picker.sourceType = .camera
+        picker.delegate = self
+        picker.allowsEditing = true // Optional: Allow the user to edit the photo
+        present(picker, animated: true)
+    }
+    
+    private func openPhotoLibrary() {
         // If authorized, show photo picker, otherwise request authorization.
         // If authorization denied, show alert with option to go to settings to update authorization.
         if PHPhotoLibrary.authorizationStatus(for: .readWrite) != .authorized {
@@ -105,8 +181,70 @@ class TaskDetailViewController: UIViewController {
         present(picker, animated: true)
         // TODO: Create, configure and present image picker.
     }
+    
+    func updateMapView() {
+        // Make sure the task has image location.
+        guard let imageLocation = task.imageLocation else { return }
+
+        // Get the coordinate from the image location. This is the latitude / longitude of the location.
+        // https://developer.apple.com/documentation/mapkit/mkmapview
+        let coordinate = imageLocation.coordinate
+
+        // Set the map view's region based on the coordinate of the image.
+        // The span represents the maps's "zoom level". A smaller value yields a more "zoomed in" map area, while a larger value is more "zoomed out".
+        let region = MKCoordinateRegion(center: coordinate, span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01))
+        mapView.setRegion(region, animated: true)
+
+        // Add an annotation to the map view based on image location.
+        let annotation = MKPointAnnotation()
+        annotation.coordinate = coordinate
+        mapView.addAnnotation(annotation)
+
+    }
 
 }
+
+extension TaskDetailViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        print("✅ Camera finished picking media.")
+
+        // Check for image from the picker
+        if let image = info[.editedImage] as? UIImage ?? info[.originalImage] as? UIImage {
+            print("🌉 Image successfully captured from camera.")
+
+            // Use current location if available, otherwise use default (0, 0)
+            let location = currentLocation ?? CLLocation(latitude: 0.0, longitude: 0.0)
+            if currentLocation == nil {
+                print("⚠️ Warning: Current location is nil. Using default location (0.0, 0.0).")
+            } else {
+                print("📍 Location set for the image: \(location.coordinate.latitude), \(location.coordinate.longitude)")
+            }
+
+            task.set(image, with: location)
+
+            // Update the UI
+            updateUI()
+            updateMapView()
+        } else {
+            print("❌ Failed to retrieve image from camera picker.")
+        }
+
+        // Dismiss the picker
+        picker.dismiss(animated: true) {
+            print("🛑 Camera picker dismissed.")
+        }
+    }
+
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        print("⚠️ Camera picker was canceled by the user.")
+
+        // Dismiss the picker
+        picker.dismiss(animated: true) {
+            print("🛑 Camera picker dismissed after cancellation.")
+        }
+    }
+}
+
 
 extension TaskDetailViewController: PHPickerViewControllerDelegate {
     func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
@@ -154,9 +292,26 @@ extension TaskDetailViewController: PHPickerViewControllerDelegate {
                 self?.updateUI()
 
                 // Update the map view since we now have an image an location
-//                self?.updateMapView()
+                self?.updateMapView()
             }
         }
+    }
+}
+
+extension TaskDetailViewController: MKMapViewDelegate {
+    // Implement mapView(_:viewFor:) delegate method.
+    func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+
+        // Dequeue the annotation view for the specified reuse identifier and annotation.
+        // Cast the dequeued annotation view to your specific custom annotation view class, `TaskAnnotationView`
+        // 💡 This is very similar to how we get and prepare cells for use in table views.
+        guard let annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: TaskAnnotationView.identifier, for: annotation) as? TaskAnnotationView else {
+            fatalError("Unable to dequeue TaskAnnotationView")
+        }
+
+        // Configure the annotation view, passing in the task's image.
+        annotationView.configure(with: task.image)
+        return annotationView
     }
 }
 
